@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AERO-MED OMNI // Operator Registration</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-body">
+    <div class="auth-topbar">
+        <a href="index.html" class="auth-brand-link">
+            <svg viewBox="0 0 36 36" width="28" height="28" aria-hidden="true">
+                <circle cx="18" cy="18" r="15" fill="rgba(0, 229, 255, 0.08)" stroke="#00e5ff" stroke-width="1.5"/>
+                <path d="M18 7 L24 25 L18 20.5 L12 25 Z" fill="#00e5ff"/>
+            </svg>
+            <div>
+                <div class="brand-title">AERO-MED <span>OMNI</span></div>
+                <div class="brand-sub" data-i18n="brand_sub">MİSSİYA TİBBİ VƏ SİSTEMLƏRİ</div>
+            </div>
+        </a>
+
+        <div class="auth-topbar-actions">
+            <a href="index.html" class="btn btn-sm" data-i18n="auth_back_dash">← İdarəetmə Panelinə Qayıt</a>
+            <select id="auth-lang-select" class="ctrl-select ctrl-sm lang-quick-select" aria-label="Language">
+                <option value="az">🇦🇿 AZ</option>
+                <option value="en">🇺🇸 EN</option>
+                <option value="ru">🇷🇺 RU</option>
+            </select>
+        </div>
+    </div>
+
+    <main class="auth-container">
+        <div class="auth-card auth-card-wide">
+            <div class="auth-card-head">
+                <span class="badge-ref" data-i18n="auth_gateway_badge">DSN GİRİŞ ŞLÜZÜ • TƏHLÜKƏSİZ</span>
+                <h1 data-i18n="auth_signup_title">Uçuş Operatoru Qeydiyyatı</h1>
+                <p class="muted" data-i18n="auth_signup_sub">Sistemləri yoxlamaq, gəmi avadanlıqlarını audit etmək və biomarkerləri analiz etmək üçün profil yaradın.</p>
+            </div>
+
+            <div class="auth-offline-banner hidden" id="auth-offline-banner" role="status">
+                <span class="omb-pill">LOCALSTORAGE</span>
+                <span data-i18n="auth_offline_banner">Oflayn localStorage Rejimi Aktivdir — Server əlçatan deyil; giriş və qeydiyyat brauzer yaddaşı ilə təhlükəsiz işləyir.</span>
+            </div>
+
+            <form id="signup-form" class="auth-form" novalidate>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="signup-fullname" data-i18n="auth_lbl_fullname">Ad, Soyad və Vəzifə *</label>
+                        <input type="text" id="signup-fullname" class="ctrl-input" data-i18n-placeholder="auth_ph_fullname" placeholder="məs. Dr. Leyla Məmmədova" required>
+                    </div>
+                    <div class="field-group">
+                        <label for="signup-callsign" data-i18n="auth_lbl_callsign">Çağırış Kodu / Operator ID *</label>
+                        <input type="text" id="signup-callsign" class="ctrl-input mono" data-i18n-placeholder="auth_ph_callsign" placeholder="məs. MD-05" maxlength="14" required>
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="signup-role" data-i18n="auth_lbl_role">Missiya Rolu *</label>
+                        <select id="signup-role" class="ctrl-select" required>
+                            <option value="auth_role_surgeon" data-i18n="auth_role_surgeon">Uçuş Həkimi və Bioloq</option>
+                            <option value="auth_role_commander" data-i18n="auth_role_commander">Missiya Komandiri</option>
+                            <option value="auth_role_engineer" data-i18n="auth_role_engineer">Baş Uçuş Mühəndisi</option>
+                            <option value="auth_role_specialist" data-i18n="auth_role_specialist">Biometrik Telemetriya Mütəxəssisi</option>
+                            <option value="auth_role_judge" data-i18n="auth_role_judge">NASA Münsif / Müşahidəçi</option>
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label for="signup-email" data-i18n="auth_lbl_email">Rəsmi E-poçt Ünvanı *</label>
+                        <input type="email" id="signup-email" class="ctrl-input" data-i18n-placeholder="auth_ph_email" placeholder="operator@aeromed.nasa.gov" required autocomplete="email">
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="signup-password" data-i18n="auth_lbl_password">Şifrə *</label>
+                        <div class="pw-input-wrap">
+                            <input type="password" id="signup-password" class="ctrl-input" data-i18n-placeholder="auth_ph_password" placeholder="Minimum 6 simvol" required autocomplete="new-password">
+                            <button type="button" class="pw-toggle-btn" data-target="signup-password" aria-label="Show password">👁</button>
+                        </div>
+                        <div class="pw-strength-wrap">
+                            <div class="pw-strength-track"><div id="pw-strength-bar" class="pw-strength-fill"></div></div>
+                            <span id="pw-strength-label" class="mono"></span>
+                        </div>
+                    </div>
+
+                    <div class="field-group">
+                        <label for="signup-confirm" data-i18n="auth_lbl_confirm_pw">Şifrəni Təsdiqlə *</label>
+                        <div class="pw-input-wrap">
+                            <input type="password" id="signup-confirm" class="ctrl-input" data-i18n-placeholder="auth_ph_password" placeholder="Minimum 6 simvol" required autocomplete="new-password">
+                            <button type="button" class="pw-toggle-btn" data-target="signup-confirm" aria-label="Show password">👁</button>
+                        </div>
+                    </div>
+                </div>
+
+                <label class="auth-check-line">
+                    <input type="checkbox" id="signup-terms" checked>
+                    <span data-i18n="auth_terms">Telemetriya simulyasiyası və AI analizinin tədqiqat məqsədli (qeyri-diaqnostik) olduğunu təsdiq edirəm.</span>
+                </label>
+
+                <div class="form-error hidden" id="auth-error-box"></div>
+
+                <div class="auth-actions">
+                    <button type="submit" class="btn btn-cyan auth-submit-btn" data-i18n="auth_btn_signup">Operator Hesabı Yarat →</button>
+                </div>
+            </form>
+
+            <div class="auth-switch-foot">
+                <span class="muted" data-i18n="auth_have_account">Artıq icazəniz var?</span>
+                <a href="login.html" class="auth-link" data-i18n="auth_link_login">Daxil Ol →</a>
+            </div>
+        </div>
+    </main>
+
+    <script src="data.js"></script>
+    <script src="auth.js"></script>
+</body>
+</html>

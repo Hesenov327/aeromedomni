@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AERO-MED OMNI // Mission Medical &amp; Spacecraft Control</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+</head>
+<body>
+    <div class="app-shell">
+        <!-- ==================== SIDEBAR NAVIGATION ==================== -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-mark" aria-hidden="true">
+                    <svg viewBox="0 0 36 36" width="28" height="28">
+                        <circle cx="18" cy="18" r="15" fill="rgba(0, 229, 255, 0.08)" stroke="#00e5ff" stroke-width="1.5"/>
+                        <path d="M18 7 L24 25 L18 20.5 L12 25 Z" fill="#00e5ff"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="brand-title">AERO-MED <span>OMNI</span></div>
+                    <div class="brand-sub" data-i18n="brand_sub">MİSSİYA TİBBİ VƏ SİSTEMLƏRİ</div>
+                </div>
+                <button class="sidebar-close-btn" id="sidebar-close-btn" aria-label="Close menu">✕</button>
+            </div>
+
+            <div class="sidebar-group-label" data-i18n="nav_group">ƏSAS NAVİQASİYA</div>
+            <nav class="sidebar-nav" id="sidebar-nav" aria-label="Main Sections">
+                <button class="nav-item active" data-section="sec-overview">
+                    <span class="nav-ico">◈</span>
+                    <span data-i18n="nav_overview">Missiya İcmalı</span>
+                </button>
+                <button class="nav-item" data-section="sec-crew">
+                    <span class="nav-ico">⚕</span>
+                    <span data-i18n="nav_crew">Ekipaj Sağlamlığı</span>
+                </button>
+                <button class="nav-item" data-section="sec-nasa-data">
+                    <span class="nav-ico">✦</span>
+                    <span data-i18n="nav_nasa_data">NASA Elmi Məlumatları</span>
+                    <span class="nav-badge ref">OSD-575</span>
+                </button>
+                <button class="nav-item" data-section="sec-ai">
+                    <span class="nav-ico">⚛</span>
+                    <span data-i18n="nav_ai">AI Tibbi Analiz</span>
+                    <span class="nav-badge low" id="nav-ai-badge">LOW</span>
+                </button>
+                <button class="nav-item" data-section="sec-inspection">
+                    <span class="nav-ico">☑</span>
+                    <span data-i18n="nav_inspection">Gəmi Yoxlaması</span>
+                    <span class="nav-count warn" id="nav-eq-warn-badge">0</span>
+                </button>
+                <button class="nav-item" data-section="sec-environment">
+                    <span class="nav-ico">◎</span>
+                    <span data-i18n="nav_environment">Missiya Mühiti</span>
+                </button>
+                <button class="nav-item" data-section="sec-reports">
+                    <span class="nav-ico">▤</span>
+                    <span data-i18n="nav_reports">Hesabatlar</span>
+                </button>
+                <button class="nav-item" data-section="sec-settings">
+                    <span class="nav-ico">⚙</span>
+                    <span data-i18n="nav_settings">Tənzimləmələr</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="operator-box" id="operator-profile-box"></div>
+                <div class="link-status-box">
+                    <div class="lsb-row">
+                        <span data-i18n="lbl_data_stream">MƏLUMAT AXINI</span>
+                        <span id="sidebar-stream-badge" class="ok-text mono">CANLI (1Hz)</span>
+                    </div>
+                    <div class="lsb-row">
+                        <span data-i18n="lbl_dsn_link">YER DSN ƏLAQƏSİ</span>
+                        <span class="mono" id="sidebar-dsn-ping">1.28 s</span>
+                    </div>
+                    <div class="lsb-tags">
+                        <span class="badge-sim" data-i18n="badge_demo_data">SİMULYASİYA</span>
+                        <span class="badge-ref" data-i18n="badge_nasa_ref">NASA HRP İSTİNAD</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ==================== MAIN WORKSPACE ==================== -->
+        <div class="main-shell">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">☰</button>
+                    <div>
+                        <h1 class="page-title" id="page-heading">Missiya İdarəetmə İcmalı</h1>
+                        <p class="page-subtitle" id="page-subheading">Ekipaj sağlamlığı, kosmik gəmi avadanlıq hazırlığı və aktiv xəbərdarlıqlar</p>
+                    </div>
+                </div>
+
+                <div class="topbar-right">
+                    <div class="met-readout">
+                        <span class="met-lbl" data-i18n="lbl_met">MİSSİYA MÜDDƏTİ (MET)</span>
+                        <strong class="mono" id="met-clock">T+ 042:18:14:09</strong>
+                    </div>
+                    <select id="topbar-lang-select" class="ctrl-select ctrl-sm lang-quick-select" aria-label="Language Selector">
+                        <option value="az">🇦🇿 AZ</option>
+                        <option value="en">🇺🇸 EN</option>
+                        <option value="ru">🇷🇺 RU</option>
+                    </select>
+                    <button type="button" class="btn btn-sm" id="topbar-theme-btn" aria-label="Toggle Light/Dark Theme">☀️</button>
+                    <button class="btn btn-cyan" id="presentation-mode-btn" data-i18n="btn_presentation_mode">★ Təqdimat Rejimi</button>
+                    <button type="button" class="btn btn-sm btn-mute-alarm" id="mute-alarm-btn" data-i18n="btn_mute_5m">🔕 5 Dəq Susdur</button>
+                    <div class="mission-pill low" id="global-status-pill">STATUS: NOMİNAL</div>
+                </div>
+            </header>
+
+            <!-- Offline / file:// Fallback Notice Banner -->
+            <div class="offline-mode-banner hidden" id="offline-mode-banner" role="status">
+                <div class="omb-left">
+                    <span class="omb-pill">LOCALSTORAGE</span>
+                    <span data-i18n="offline_banner_text">Oflayn / localStorage Rejimi: Flask serveri əlçatan deyil — bütün yoxlamalar, telemetriya və ayarlar yerli yaddaşda saxlanılır.</span>
+                </div>
+                <button type="button" class="btn btn-xs omb-close" id="offline-banner-close" aria-label="Dismiss">✕</button>
+            </div>
+
+            <!-- Global SPE Shield & Shelter Alert Banner (shown when SPE active) -->
+            <div class="global-spe-banner hidden" id="global-spe-banner" role="alert">
+                <div class="gsb-left">
+                    <span class="gsb-dot"></span>
+                    <strong data-i18n="spe_hud_title">GÜNƏŞ HİSSƏCİK HADİSƏSİ (SPE) — QALXAN VƏ SIĞINACAQ PROTOKOLU</strong>
+                </div>
+                <div class="gsb-metrics mono">
+                    <span><span data-i18n="spe_shield_lbl">Qalxan Gücü:</span> <b id="global-spe-shield">100%</b></span>
+                    <span>•</span>
+                    <span><span data-i18n="spe_shelter_timer_lbl">Sığınacaq Xəbərdarlığı (Geri Sayım):</span> <b id="global-spe-timer">03:00</b></span>
+                </div>
+            </div>
+
+            <!-- ==================== 1. MISSION OVERVIEW ==================== -->
+            <section class="view-section active" id="sec-overview">
+                <div class="kpi-strip-4">
+                    <div class="panel kpi-card">
+                        <span class="kpi-lbl" data-i18n="kpi_mission_status">MİSSİYA VƏZİYYƏTİ</span>
+                        <strong class="kpi-val ok-text" id="dash-mission-status">NOMİNAL • FD-42</strong>
+                        <span class="kpi-sub" id="dash-orbit-sub" data-i18n="kpi_orbit_sub">LEO 418 km • Ku-Band Aktivdir</span>
+                    </div>
+                    <div class="panel kpi-card">
+                        <span class="kpi-lbl" data-i18n="kpi_total_crew">ÜMUMİ EKİPAJ SAYI</span>
+                        <strong class="kpi-val mono" id="dash-crew-total">4 / 4</strong>
+                        <span class="kpi-sub" id="dash-crew-sub">3 Nominal • 1 Diqqət</span>
+                    </div>
+                    <div class="panel kpi-card">
+                        <span class="kpi-lbl" data-i18n="kpi_med_equipment">GƏMİ SİSTEMLƏRİ</span>
+                        <strong class="kpi-val mono" id="dash-eq-status">7 / 8</strong>
+                        <span class="kpi-sub" id="dash-eq-sub">7 İşlək • 1 Xəbərdarlıq</span>
+                    </div>
+                    <div class="panel kpi-card">
+                        <span class="kpi-lbl" data-i18n="kpi_active_alerts">AKTİV XƏBƏRDARLIQLAR</span>
+                        <strong class="kpi-val mono" id="dash-alert-count">0</strong>
+                        <span class="kpi-sub" id="dash-alert-sub" data-i18n="kpi_alert_sub">Ekipaj və Avadanlıq Nəzarəti</span>
+                    </div>
+                </div>
+
+                <div class="dash-grid">
+                    <div class="panel">
+                        <div class="panel-head">
+                            <div>
+                                <h3 data-i18n="dash_crew_title">Ekipaj Sağlamlığına Baxış</h3>
+                                <span class="muted" data-i18n="dash_crew_sub">Ətraflı biometrik telemetriya üçün astronavtı seçin</span>
+                            </div>
+                            <button class="btn btn-sm" data-goto="sec-crew" data-i18n="btn_open_crew">Ekipaj Sağlamlığı →</button>
+                        </div>
+                        <div class="dash-crew-list" id="dash-crew-list"></div>
+                    </div>
+
+                    <div class="dash-side-col">
+                        <div class="panel ai-advisor-panel" id="overview-ai-advisor-panel">
+                            <div class="panel-head">
+                                <h3 data-i18n="ai_advisor_title">AI Tibbi Məsləhətçi</h3>
+                                <span class="badge-state ok" id="overview-advisor-badge" data-i18n="ai_advisor_badge_standby">GÖZLƏMƏ</span>
+                            </div>
+                            <div id="overview-ai-advisor-body" class="advisor-body"></div>
+                        </div>
+
+                        <div class="panel">
+                            <div class="panel-head">
+                                <div>
+                                    <h3 data-i18n="dash_eq_title">Kosmik Gəmi Sistemlərinin Hazırlığı</h3>
+                                    <span class="muted" data-i18n="dash_eq_sub">8 missiya üçün həyati vacib sistem</span>
+                                </div>
+                                <button class="btn btn-sm" data-goto="sec-inspection" data-i18n="btn_inspect_arrow">Sistemləri Yoxla →</button>
+                            </div>
+                            <div class="eq-summary-bars" id="dash-eq-bars"></div>
+                        </div>
+
+                        <div class="panel">
+                            <div class="panel-head">
+                                <h3 data-i18n="dash_act_title">Son Sistem Fəaliyyətləri</h3>
+                                <span class="badge-sim" data-i18n="badge_log">JURNAL</span>
+                            </div>
+                            <div class="activity-list" id="dash-activity-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== 2. CREW HEALTH MONITORING ==================== -->
+            <section class="view-section" id="sec-crew">
+                <div class="crew-selector-bar" id="crew-selector-bar"></div>
+
+                <div class="crew-detail-layout">
+                    <div class="crew-primary-col">
+                        <div class="panel astro-header-panel">
+                            <div class="ah-identity">
+                                <div class="avatar-box" id="crew-avatar">AK</div>
+                                <div>
+                                    <div class="ah-title-row">
+                                        <h2 id="crew-name">Cmdr. Aydin Karimov</h2>
+                                        <span class="id-chip mono" id="crew-id">ASN-9041</span>
+                                        <span class="badge-sim" data-i18n="badge_sim_telemetry">SİMULYASİYA</span>
+                                    </div>
+                                    <p class="muted" id="crew-meta"></p>
+                                </div>
+                            </div>
+                            <div class="ah-status">
+                                <span class="kpi-lbl" data-i18n="lbl_mon_status">MONİTORİNQ STATUSU</span>
+                                <span class="risk-pill low" id="crew-status-pill">NOMİNAL</span>
+                            </div>
+                        </div>
+
+                        <div class="vitals-grid-4">
+                            <div class="panel vital-tile" id="vcard-hr">
+                                <div class="vt-top">
+                                    <span data-i18n="vital_hr">ÜRƏK DÖYÜNTÜSÜ</span>
+                                    <span class="badge-state ok" id="vstate-hr">NORMAL</span>
+                                </div>
+                                <div class="vt-num"><span id="val-hr">72</span> <small>BPM</small></div>
+                                <div class="vt-norm"><span data-i18n="lbl_base">Baza</span>: <b id="base-hr">70</b> BPM • HRV <b id="val-hrv">48 ms</b></div>
+                                <canvas id="spark-hr" height="46"></canvas>
+                            </div>
+
+                            <div class="panel vital-tile" id="vcard-spo2">
+                                <div class="vt-top">
+                                    <span data-i18n="vital_spo2">QANDA OKSİGEN (SpO₂)</span>
+                                    <span class="badge-state ok" id="vstate-spo2">NORMAL</span>
+                                </div>
+                                <div class="vt-num"><span id="val-spo2">98.4</span> <small>%</small></div>
+                                <div class="vt-norm"><span data-i18n="lbl_ref">Norma</span>: 95–100% • <span data-i18n="lbl_cabin_pco2">Kabin pCO₂</span> <b id="val-co2">2.6 mmHg</b></div>
+                                <canvas id="spark-spo2" height="46"></canvas>
+                            </div>
+
+                            <div class="panel vital-tile" id="vcard-bp">
+                                <div class="vt-top">
+                                    <span data-i18n="vital_bp">QAN TƏZYİQİ</span>
+                                    <span class="badge-state ok" id="vstate-bp">NORMAL</span>
+                                </div>
+                                <div class="vt-num"><span id="val-bp">118/76</span> <small>mmHg</small></div>
+                                <div class="vt-norm">MAP: <b id="val-map">90 mmHg</b> • <span data-i18n="lbl_resp">Tənəffüs</span> <b id="val-rr">14/m</b></div>
+                                <canvas id="spark-bp" height="46"></canvas>
+                            </div>
+
+                            <div class="panel vital-tile" id="vcard-temp">
+                                <div class="vt-top">
+                                    <span data-i18n="vital_temp">BƏDƏN TEMPERATURU</span>
+                                    <span class="badge-state ok" id="vstate-temp">NORMAL</span>
+                                </div>
+                                <div class="vt-num"><span id="val-temp">36.6</span> <small id="unit-temp">°C</small></div>
+                                <div class="vt-norm"><span data-i18n="lbl_rad">Rad.</span>: <b id="val-rad">0.42 mSv/d</b></div>
+                                <canvas id="spark-temp" height="46"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="panel">
+                            <div class="panel-head">
+                                <div>
+                                    <h3 data-i18n="osc_title">Real-Vaxt Fizioloji Dalğa Forması (EKQ / SpO₂ / Tənəffüs)</h3>
+                                    <span class="muted" data-i18n="osc_sub">Fasiləsiz bio-monitor axını • 25 mm/s</span>
+                                </div>
+                                <button id="stream-pause-btn" class="btn btn-sm" data-i18n="btn_pause_stream">⏸ Axını Dayandır</button>
+                            </div>
+                            <canvas id="osc-canvas" height="150"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="crew-side-col">
+                        <!-- Dynamic Gender-Adaptive Bio-Technical Mannequin Panel (Right Column) -->
+                        <div class="panel mannequin-panel" id="crew-mannequin-panel" data-gender="male">
+                            <div class="panel-head wrap-head">
+                                <div>
+                                    <h3 data-i18n="mannequin_title">Biometrik Texniki Manken</h3>
+                                    <span class="muted mono" id="mannequin-subject-lbl">Cmdr. Aydin Karimov • ASN-9041</span>
+                                </div>
+                                <span class="badge-state ok mono" id="mannequin-gender-badge" data-i18n="mannequin_gender_male">KİŞİ MODELİ</span>
+                            </div>
+
+                            <div class="mannequin-stage" id="mannequin-stage">
+                                <div class="mannequin-grid-bg"></div>
+                                <div class="mannequin-scan-beam"></div>
+
+                                <div class="mannequin-hud-top mono">
+                                    <span class="mannequin-chip" data-i18n="mannequin_auto_tag">AVTO-CİNSİYYƏT SİNX.</span>
+                                    <span class="mannequin-chip" id="mannequin-risk-chip">NOMİNAL</span>
+                                </div>
+
+                                <div class="mannequin-figure-wrap" id="mannequin-figure-wrap">
+                                    <svg id="mannequin-svg" class="mannequin-svg" viewBox="-6 0 272 308" role="img" aria-label="Dynamic Biometric Technical Mannequin">
+                                        <defs>
+                                            <linearGradient id="maleHoloFill" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.28"/>
+                                                <stop offset="55%" stop-color="#0284c7" stop-opacity="0.16"/>
+                                                <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0.32"/>
+                                            </linearGradient>
+                                            <linearGradient id="femaleHoloFill" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0%" stop-color="#e879f9" stop-opacity="0.26"/>
+                                                <stop offset="55%" stop-color="#38bdf8" stop-opacity="0.18"/>
+                                                <stop offset="100%" stop-color="#a855f7" stop-opacity="0.30"/>
+                                            </linearGradient>
+                                            <filter id="holoNeonGlow" x="-25%" y="-25%" width="150%" height="150%">
+                                                <feGaussianBlur stdDeviation="2.6" result="blur"/>
+                                                <feMerge>
+                                                    <feMergeNode in="blur"/>
+                                                    <feMergeNode in="SourceGraphic"/>
+                                                </feMerge>
+                                            </filter>
+                                        </defs>
+
+                                        <!-- Perspective Spine Axis & Telemetry Crosshairs -->
+                                        <g class="mannequin-axis" opacity="0.38">
+                                            <line x1="130" y1="16" x2="130" y2="296" stroke="#38bdf8" stroke-width="0.8" stroke-dasharray="3 4"/>
+                                            <line x1="48" y1="92" x2="212" y2="92" stroke="#38bdf8" stroke-width="0.6" stroke-dasharray="2 4"/>
+                                            <line x1="56" y1="176" x2="204" y2="176" stroke="#38bdf8" stroke-width="0.6" stroke-dasharray="2 4"/>
+                                        </g>
+
+                                        <!-- MALE TECHNICAL MANNEQUIN CHASSIS -->
+                                        <g id="mannequin-model-male" class="mannequin-chassis is-active" filter="url(#holoNeonGlow)">
+                                            <!-- Cranial Helmet / Head (Squared Jaw) -->
+                                            <path d="M113 30 C113 18, 147 18, 147 30 L146 47 L139 56 L121 56 L114 47 Z"
+                                                  fill="url(#maleHoloFill)" stroke="#00e5ff" stroke-width="1.6"/>
+                                            <path d="M118 33 L142 33 L140 41 L120 41 Z" fill="rgba(0,229,255,0.25)" stroke="#7dd3fc" stroke-width="0.9"/>
+                                            <!-- Neck & Collar Ring -->
+                                            <path d="M121 56 L120 66 L140 66 L139 56" fill="url(#maleHoloFill)" stroke="#00e5ff" stroke-width="1.2"/>
+                                            <ellipse cx="130" cy="68" rx="18" ry="4" fill="none" stroke="#38bdf8" stroke-width="1.1"/>
+                                            <!-- Broad Shoulders, Deltoids, Torso & Straight Arms -->
+                                            <path d="M120 66 L80 74 C70 77, 65 86, 63 98 L53 158 C52 164, 58 167, 62 163 L75 110 L82 106 L88 150 L92 178 L87 284 L106 286 L120 198 L130 196 L140 198 L154 286 L173 284 L168 178 L172 150 L178 106 L185 110 L198 163 C202 167, 208 164, 207 158 L197 98 C195 86, 190 77, 180 74 L140 66 Z"
+                                                  fill="url(#maleHoloFill)" stroke="#00e5ff" stroke-width="1.7" stroke-linejoin="round"/>
+                                            <!-- Technical Chest Plate & Ribcage Lattice -->
+                                            <path d="M92 84 L130 92 L168 84 M94 104 L130 112 L166 104 M98 126 L130 132 L162 126 M96 156 L164 156"
+                                                  fill="none" stroke="#7dd3fc" stroke-width="1" opacity="0.78"/>
+                                            <path d="M110 176 L130 194 L150 176" fill="none" stroke="#00e5ff" stroke-width="1.1" opacity="0.7"/>
+                                            <!-- Knee & Boot Joint Rings -->
+                                            <line x1="90" y1="234" x2="112" y2="234" stroke="#38bdf8" stroke-width="1.1"/>
+                                            <line x1="148" y1="234" x2="170" y2="234" stroke="#38bdf8" stroke-width="1.1"/>
+                                        </g>
+
+                                        <!-- FEMALE TECHNICAL MANNEQUIN CHASSIS -->
+                                        <g id="mannequin-model-female" class="mannequin-chassis hidden" filter="url(#holoNeonGlow)">
+                                            <!-- Cranial Helmet / Head (Tapered Oval Jaw) -->
+                                            <path d="M115 31 C115 19, 145 19, 145 31 C145 43, 139 55, 130 56 C121 55, 115 43, 115 31 Z"
+                                                  fill="url(#femaleHoloFill)" stroke="#e879f9" stroke-width="1.6"/>
+                                            <path d="M119 32 C124 29, 136 29, 141 32 L139 40 C134 42, 126 42, 121 40 Z"
+                                                  fill="rgba(232,121,249,0.22)" stroke="#38bdf8" stroke-width="0.9"/>
+                                            <!-- Neck & Collar Contour -->
+                                            <path d="M123 55 L122 66 L138 66 L137 55" fill="url(#femaleHoloFill)" stroke="#e879f9" stroke-width="1.2"/>
+                                            <ellipse cx="130" cy="68" rx="15" ry="3.5" fill="none" stroke="#38bdf8" stroke-width="1.1"/>
+                                            <!-- Sculpted Narrower Shoulders, Tapered Waist, Curved Hip Profile -->
+                                            <path d="M122 66 L90 76 C81 79, 77 87, 74 99 L63 156 C62 162, 68 164, 71 159 L84 109 L89 107 L99 138 C100 148, 92 164, 88 182 L94 284 L111 286 L123 197 C127 195, 133 195, 137 197 L149 286 L166 284 L172 182 C168 164, 160 148, 161 138 L171 107 L176 109 L189 159 C192 164, 198 162, 197 156 L186 99 C183 87, 179 79, 170 76 L138 66 Z"
+                                                  fill="url(#femaleHoloFill)" stroke="#e879f9" stroke-width="1.7" stroke-linejoin="round"/>
+                                            <!-- Sculpted Thoracic / Waist Biometric Contours -->
+                                            <path d="M98 88 C110 96, 120 97, 130 96 C140 97, 150 96, 162 88" fill="none" stroke="#38bdf8" stroke-width="1.05" opacity="0.85"/>
+                                            <path d="M100 112 C112 120, 148 120, 160 112" fill="none" stroke="#f0abfc" stroke-width="1" opacity="0.8"/>
+                                            <path d="M104 140 C118 144, 142 144, 156 140 M94 168 C114 176, 146 176, 166 168" fill="none" stroke="#38bdf8" stroke-width="1" opacity="0.75"/>
+                                            <!-- Knee & Boot Joint Rings -->
+                                            <line x1="94" y1="234" x2="114" y2="234" stroke="#e879f9" stroke-width="1.1"/>
+                                            <line x1="146" y1="234" x2="166" y2="234" stroke="#e879f9" stroke-width="1.1"/>
+                                        </g>
+
+                                        <!-- LIVE BIOMETRIC SENSOR HOTSPOTS OVERLAY -->
+                                        <g id="mannequin-hotspots">
+                                            <!-- Thermal (Cranial) -->
+                                            <g class="mq-node" id="mq-node-temp">
+                                                <line x1="138" y1="36" x2="196" y2="28" stroke="currentColor" stroke-width="0.9" opacity="0.8"/>
+                                                <circle cx="138" cy="36" r="4" fill="currentColor"/>
+                                                <text x="200" y="31" class="mq-svg-txt" id="mq-val-temp">36.6°C</text>
+                                            </g>
+                                            <!-- Cardiac (Heart) -->
+                                            <g class="mq-node" id="mq-node-hr">
+                                                <circle cx="141" cy="108" r="9" fill="none" stroke="currentColor" stroke-width="1" class="mq-pulse-ring"/>
+                                                <circle cx="141" cy="108" r="4.2" fill="currentColor"/>
+                                                <line x1="146" y1="108" x2="198" y2="98" stroke="currentColor" stroke-width="0.9" opacity="0.8"/>
+                                                <text x="202" y="101" class="mq-svg-txt" id="mq-val-hr">72 BPM</text>
+                                            </g>
+                                            <!-- Pulmonary (Lungs / SpO2) -->
+                                            <g class="mq-node" id="mq-node-spo2">
+                                                <circle cx="116" cy="106" r="4.2" fill="currentColor"/>
+                                                <line x1="112" y1="106" x2="58" y2="96" stroke="currentColor" stroke-width="0.9" opacity="0.8"/>
+                                                <text x="54" y="99" text-anchor="end" class="mq-svg-txt" id="mq-val-spo2">98.4%</text>
+                                            </g>
+                                            <!-- Vascular (BP Brachial Cuff) -->
+                                            <g class="mq-node" id="mq-node-bp">
+                                                <circle cx="71" cy="134" r="4" fill="currentColor"/>
+                                                <line x1="67" y1="134" x2="52" y2="148" stroke="currentColor" stroke-width="0.9" opacity="0.8"/>
+                                                <text x="48" y="151" text-anchor="end" class="mq-svg-txt" id="mq-val-bp">118/76</text>
+                                            </g>
+                                        </g>
+                                    </svg>
+                                    <div class="mannequin-pedestal"></div>
+                                </div>
+                            </div>
+
+                            <div class="mannequin-sensor-bar mono">
+                                <div class="mq-pill ok" id="mq-pill-hr"><span data-i18n="mannequin_sensor_cardiac">Ürək</span> <b id="mq-chip-hr">72</b></div>
+                                <div class="mq-pill ok" id="mq-pill-spo2"><span data-i18n="mannequin_sensor_lungs">Ağciyər</span> <b id="mq-chip-spo2">98.4%</b></div>
+                                <div class="mq-pill ok" id="mq-pill-bp"><span data-i18n="mannequin_sensor_vascular">Damar</span> <b id="mq-chip-bp">118/76</b></div>
+                                <div class="mq-pill ok" id="mq-pill-temp"><span data-i18n="mannequin_sensor_thermal">İstilik</span> <b id="mq-chip-temp">36.6°</b></div>
+                            </div>
+                        </div>
+
+                        <div class="panel ai-advisor-panel" id="crew-ai-advisor-panel">
+                            <div class="panel-head">
+                                <h3 data-i18n="ai_advisor_title">AI Tibbi Məsləhətçi</h3>
+                                <span class="badge-state ok" id="crew-advisor-badge" data-i18n="ai_advisor_badge_standby">GÖZLƏMƏ</span>
+                            </div>
+                            <div id="crew-ai-advisor-body" class="advisor-body"></div>
+                        </div>
+
+                        <div class="panel">
+                            <div class="panel-head">
+                                <h3 data-i18n="crew_hist_title">Sağlamlıq Monitorinqi Tarixçəsi</h3>
+                                <span class="badge-sim" data-i18n="badge_log">JURNAL</span>
+                            </div>
+                            <ul class="history-list" id="crew-history-list"></ul>
+                        </div>
+
+                        <div class="panel">
+                            <div class="panel-head">
+                                <h3 data-i18n="sim_ctrl_title">Simulyasiya Ssenari İdarəetməsi</h3>
+                                <span class="badge-sim" data-i18n="badge_test">TEST</span>
+                            </div>
+                            <div class="scen-grid">
+                                <button class="scen-btn active" data-mode="normal" data-i18n="scen_normal">Nominal Orbit</button>
+                                <button class="scen-btn" data-mode="eva" data-i18n="scen_eva">EVA İş Yükü</button>
+                                <button class="scen-btn" data-mode="hypoxia" data-i18n="scen_hypoxia">Hipoksiya Xəbərdarlığı</button>
+                                <button class="scen-btn" data-mode="fever" data-i18n="scen_fever">İstilik / Təzyiq Artımı</button>
+                            </div>
+                            <label class="toggle-line" style="margin-top:10px;">
+                                <span data-i18n="lbl_manual_override">Əl ilə Tənzimləmə Slayderləri</span>
+                                <input type="checkbox" id="manual-override-chk">
+                            </label>
+                            <div class="sliders-box disabled" id="sliders-group">
+                                <div class="slider-item">
+                                    <span><span data-i18n="sl_hr">Ürək Döyüntüsü</span>: <b id="lbl-hr">72</b> BPM</span>
+                                    <input type="range" id="rng-hr" min="45" max="165" value="72">
+                                </div>
+                                <div class="slider-item">
+                                    <span><span data-i18n="sl_spo2">SpO₂</span>: <b id="lbl-spo2">98.4</b> %</span>
+                                    <input type="range" id="rng-spo2" min="82" max="100" step="0.2" value="98.4">
+                                </div>
+                                <div class="slider-item">
+                                    <span><span data-i18n="sl_sys">Sistolik Təzyiq</span>: <b id="lbl-sys">118</b> mmHg</span>
+                                    <input type="range" id="rng-sys" min="80" max="175" value="118">
+                                </div>
+                                <div class="slider-item">
+                                    <span><span data-i18n="sl_temp">Bədən Temp.</span>: <b id="lbl-temp">36.6</b> °C</span>
+                                    <input type="range" id="rng-temp" min="35.2" max="39.8" step="0.1" value="36.6">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== 3. NASA SCIENTIFIC DATA CENTER ==================== -->
+            <section class="view-section" id="sec-nasa-data">
+                <div class="panel nasa-hero-banner">
+                    <div class="nasa-hero-left">
+                        <div class="nasa-badge-row">
+                            <span class="badge-ref" data-i18n="badge_nasa_official">NASA ELMİ MƏLUMATLARI</span>
+                            <span class="id-chip mono">OSD-575</span>
+                            <span class="id-chip mono" id="nasa-conn-badge">RƏSMİ KEŞ</span>
+                        </div>
+                        <h2 id="nasa-study-title">SpaceX Inspiration4 Blood Serum Metabolic Panel &amp; Cytokine Arrays</h2>
+                        <p class="muted" id="nasa-study-meta"></p>
+                    </div>
+                    <div class="nasa-hero-actions">
+                        <button class="btn btn-cyan" id="btn-query-nasa-live" data-i18n="btn_query_live_api">Canlı NASA OSDR API Yoxla</button>
+                        <a class="btn btn-sm" href="https://osdr.nasa.gov/bio/repo/data/studies/OSD-575" target="_blank" rel="noopener">osdr.nasa.gov/OSD-575 ↗</a>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top:16px;">
+                    <div class="report-tabs" id="nasa-category-tabs">
+                        <button class="tab-btn active" data-nasa-tab="cmp" data-i18n="nasa_tab_cmp">A. Hərtərəfli Metabolik Panel</button>
+                        <button class="tab-btn" data-nasa-tab="cardiovascular" data-i18n="nasa_tab_cardio">B. Ürək-Damar Biomarkerləri</button>
+                        <button class="tab-btn" data-nasa-tab="cytokines" data-i18n="nasa_tab_cytokines">C. İmmun Biomarkerləri</button>
+                        <button class="tab-btn" data-nasa-tab="historical" data-i18n="nasa_tab_historical">D. Tarixi Tədqiqat Analizi</button>
+                    </div>
+
+                    <div id="nasa-chart-view">
+                        <div class="nasa-controls-bar">
+                            <div class="field-group">
+                                <label for="nasa-biomarker-select" data-i18n="lbl_select_biomarker">Biomarker:</label>
+                                <select id="nasa-biomarker-select" class="ctrl-select"></select>
+                            </div>
+                            <div class="field-group">
+                                <label for="nasa-subject-select" data-i18n="lbl_select_subject">İştirakçı:</label>
+                                <select id="nasa-subject-select" class="ctrl-select"></select>
+                            </div>
+                        </div>
+
+                        <div class="nasa-chart-layout">
+                            <div class="nasa-plot-wrap">
+                                <div id="nasa-plotly-chart" style="width:100%; height:360px;"></div>
+                                <canvas id="nasa-fallback-canvas" class="hidden" height="340"></canvas>
+                            </div>
+                            <div class="nasa-bio-details">
+                                <div class="inset-box">
+                                    <span class="inset-lbl" data-i18n="lbl_assay_platform">Analiz Platforması:</span>
+                                    <strong id="nasa-bio-platform" style="display:block;margin-bottom:8px;">—</strong>
+                                    <span class="inset-lbl" data-i18n="lbl_reference_range">Klinik Referans Həddi:</span>
+                                    <strong id="nasa-bio-ref" class="ok-text mono" style="display:block;margin-bottom:8px;">—</strong>
+                                    <p id="nasa-bio-desc" class="muted" style="font-size:0.84rem;">—</p>
+                                </div>
+                                <div class="nasa-stats-3">
+                                    <div class="inset-tile">
+                                        <span data-i18n="lbl_baseline_mean">Baza Ortalaması</span>
+                                        <strong class="mono" id="nasa-stat-base">—</strong>
+                                    </div>
+                                    <div class="inset-tile">
+                                        <span data-i18n="lbl_r1_peak">Eniş Günü (R+1)</span>
+                                        <strong class="mono warn-text" id="nasa-stat-r1">—</strong>
+                                    </div>
+                                    <div class="inset-tile">
+                                        <span data-i18n="lbl_r82_recovery">Bərpa (R+82)</span>
+                                        <strong class="mono ok-text" id="nasa-stat-r82">—</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-wrap" style="margin-top:16px;" id="nasa-data-table-wrap"></div>
+                    </div>
+
+                    <div id="nasa-historical-view" class="hidden">
+                        <div class="inset-box" style="margin-bottom:14px;">
+                            <span class="inset-lbl" data-i18n="lbl_hist_overview">Uçuşboyu Elmi Müşahidələr (L-92 – R+82)</span>
+                            <p id="nasa-hist-summary" style="font-size:0.9rem; line-height:1.55;"></p>
+                        </div>
+                        <div class="milestones-grid" id="nasa-milestones-grid"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== 4. AI MEDICAL ANALYSIS ==================== -->
+            <section class="view-section" id="sec-ai">
+                <div class="ai-disclaimer-banner">
+                    <span class="badge-sim" data-i18n="badge_sim_ai">SİMULYASİYA EDİLMİŞ AI ANALİZ</span>
+                    <p data-i18n="ai_disclaimer_text">AERO-MED OMNI süni intellekt dəstəkli monitorinq üçün rəsmi NASA OSDR OSD-575 məlumat bazalarını, HRP sübut hesabatlarını və statistik baza analizini birləşdirir.</p>
+                </div>
+
+                <div class="ai-layout">
+                    <div class="panel">
+                        <div class="panel-head wrap-head">
+                            <div>
+                                <h3 data-i18n="ai_panel_title">Fizioloji Anomaliya və Risk Skrininqi</h3>
+                                <span class="muted" data-i18n="ai_panel_sub">Cari astronavt göstəricilərini rəsmi NASA uçuş bazası ilə müqayisə edin</span>
+                            </div>
+                            <select id="ai-crew-select" class="ctrl-select"></select>
+                        </div>
+
+                        <div class="ai-kpi-strip">
+                            <div class="inset-tile">
+                                <span data-i18n="lbl_risk_ind">RİSK İNDİKATORU</span>
+                                <strong class="risk-pill low" id="ai-risk-pill">LOW</strong>
+                            </div>
+                            <div class="inset-tile">
+                                <span data-i18n="lbl_stability">SABİTLİK İNDEKSİ</span>
+                                <strong class="mono" id="ai-stability-score">98 / 100</strong>
+                            </div>
+                            <div class="inset-tile">
+                                <span data-i18n="lbl_hr_delta">ÜRƏK DÖYÜNTÜSÜ FƏRQİ</span>
+                                <strong class="mono" id="ai-hr-delta">+2 BPM</strong>
+                            </div>
+                        </div>
+
+                        <div class="chart-card-inner">
+                            <div class="chart-title-row">
+                                <span data-i18n="ai_chart_title">Tarixi Baza vs Cari Telemetriya</span>
+                                <span class="muted" data-i18n="ai_chart_sub">Baza (boz) vs Cari (firuzəyi/xəbərdarlıq)</span>
+                            </div>
+                            <canvas id="ai-comparison-canvas" height="175"></canvas>
+                        </div>
+
+                        <div class="inset-box">
+                            <span class="inset-lbl" data-i18n="lbl_anomalies">AŞKARLANMIŞ ANOMALİYALAR VƏ İZAHAT</span>
+                            <p id="ai-explanation-text">—</p>
+                        </div>
+
+                        <div class="inset-box">
+                            <span class="inset-lbl" data-i18n="lbl_followups">TÖVSİYƏ OLUNAN NÖVBƏTİ ADDIMLAR</span>
+                            <ul class="bullet-list" id="ai-followup-list"></ul>
+                        </div>
+                    </div>
+
+                    <div class="ai-side-col">
+                        <div class="panel">
+                            <div class="panel-head wrap-head">
+                                <h3 data-i18n="ai_alerts_title">Aktiv Sistem və Tibbi Xəbərdarlıqlar</h3>
+                                <div class="btn-row">
+                                    <button type="button" class="btn btn-xs btn-mute-alarm" id="alerts-mute-btn" data-i18n="btn_mute_5m">🔕 5 Dəq Susdur</button>
+                                    <select id="ai-alert-filter" class="ctrl-select">
+                                        <option value="ALL" data-i18n="opt_all_prio">Bütün Prioritetlər</option>
+                                        <option value="HIGH" data-i18n="st_HIGH">YÜKSƏK</option>
+                                        <option value="MEDIUM" data-i18n="st_MEDIUM">ORTA</option>
+                                        <option value="LOW" data-i18n="st_LOW">AŞAĞI</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="activity-list" id="ai-alerts-feed"></div>
+                        </div>
+
+                        <div class="panel">
+                            <div class="panel-head">
+                                <h3 data-i18n="nasa_sources_title">NASA OSDR, HRP və Sübut Hesabatları</h3>
+                                <span class="badge-ref" data-i18n="badge_official">RƏSMİ MƏNBƏLƏR</span>
+                            </div>
+                            <div class="source-links-list" id="nasa-sources-list"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistical Screening on Authentic OSD-575 & 3-Tier Distinction -->
+                <div class="ai-research-grid">
+                    <div class="panel">
+                        <div class="panel-head wrap-head">
+                            <h3 data-i18n="lbl_stat_summary">OSD-575 Statistik Longitudinal Skrininq (Z-Skor Analizi)</h3>
+                            <span class="badge-ref">OSD-575</span>
+                        </div>
+                        <div class="table-wrap" id="ai-osd-zscore-table"></div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-head wrap-head">
+                            <h3 data-i18n="nasa_arch_title">NASA Məlumat İnteqrasiya Arxitekturası</h3>
+                            <span class="badge-ref" data-i18n="badge_6mod">6 MODUL</span>
+                        </div>
+                        <div class="inset-box" style="margin-bottom:12px;">
+                            <span class="inset-lbl" data-i18n="lbl_hrp_5risks">NASA HRP 5 TƏDQİQAT RİSK SAHƏSİ</span>
+                            <div class="hrp-risk-list" id="ai-hrp-risks-list"></div>
+                        </div>
+                        <div class="tier-list" id="data-tiers-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== 5. SPACECRAFT EQUIPMENT INSPECTION ==================== -->
+            <section class="view-section" id="sec-inspection">
+                <div class="inspection-layout">
+                    <form class="panel inspection-form" id="inspection-form" novalidate>
+                        <div class="panel-head wrap-head">
+                            <div>
+                                <h3 data-i18n="insp_title">Rəqəmsal Avadanlıq Yoxlama Siyahısı</h3>
+                                <span class="muted" data-i18n="insp_sub">Bütün yoxlamalar təsdiqlənir və yerli brauzer / SQLite yaddaşında saxlanılır</span>
+                            </div>
+                            <button type="button" class="btn btn-sm" id="insp-mark-all-pass" data-i18n="btn_mark_all_pass">✔ Hamısını Keçdi İşarələ</button>
+                        </div>
+
+                        <div class="form-row-3">
+                            <div class="field-group">
+                                <label for="insp-eq-select" data-i18n="lbl_target_eq">Hədəf Gəmi Sistemi *</label>
+                                <select id="insp-eq-select" class="ctrl-select" required></select>
+                            </div>
+                            <div class="field-group">
+                                <label for="insp-inspector" data-i18n="lbl_inspector_name">Müfəttişin Adı *</label>
+                                <input type="text" id="insp-inspector" class="ctrl-input" data-i18n-placeholder="ph_inspector" placeholder="məs. Dr. Leyla Məmmədova" required>
+                            </div>
+                            <div class="field-group">
+                                <label for="insp-date" data-i18n="lbl_insp_date">Yoxlama Tarixi *</label>
+                                <input type="date" id="insp-date" class="ctrl-input" required>
+                            </div>
+                        </div>
+
+                        <div class="checklist-container" id="checklist-items"></div>
+
+                        <div class="form-row-2">
+                            <div class="field-group">
+                                <label for="insp-result-status" data-i18n="lbl_result_status">Yekun Avadanlıq Statusu *</label>
+                                <select id="insp-result-status" class="ctrl-select" required>
+                                    <option value="OPERATIONAL" data-i18n="st_OPERATIONAL">İŞLƏK</option>
+                                    <option value="WARNING" data-i18n="st_WARNING">XƏBƏRDARLIQ</option>
+                                    <option value="MAINTENANCE REQUIRED" data-i18n="st_MAINTENANCE">TEXNİKİ XİDMƏT TƏLƏB OLUNUR</option>
+                                    <option value="OFFLINE" data-i18n="st_OFFLINE">OFLAYN</option>
+                                </select>
+                            </div>
+                            <div class="field-group">
+                                <label for="insp-next-date" data-i18n="lbl_next_insp">Növbəti Planlaşdırılmış Yoxlama *</label>
+                                <input type="date" id="insp-next-date" class="ctrl-input" required>
+                            </div>
+                        </div>
+
+                        <div class="field-group">
+                            <label for="insp-notes" data-i18n="lbl_insp_notes">Yoxlama Qeydləri və Müşahidələr *</label>
+                            <textarea id="insp-notes" class="ctrl-textarea" rows="3" data-i18n-placeholder="ph_insp_notes" placeholder="Kalibrləmə göstəricilərini, kiplik yoxlamasını və ya tədbirləri qeyd edin..." required></textarea>
+                        </div>
+
+                        <div class="form-error hidden" id="insp-form-error"></div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-cyan" data-i18n="btn_save_insp">Yoxlama Qeydini Saxla</button>
+                            <button type="button" class="btn" id="insp-generate-report-btn" data-i18n="btn_gen_report">Yoxlama Hesabatı Yarat</button>
+                        </div>
+                    </form>
+
+                    <div class="panel">
+                        <div class="panel-head">
+                            <h3 data-i18n="saved_insp_title">Saxlanılmış Yoxlama Hesabatları</h3>
+                            <span class="mono muted" id="insp-count-lbl">0</span>
+                        </div>
+                        <div class="saved-insp-list" id="saved-inspections-list"></div>
+                    </div>
+                </div>
+
+                <!-- 8 Spacecraft Systems Inventory Cards -->
+                <div class="panel" style="margin-top:16px;">
+                    <div class="panel-head wrap-head">
+                        <h3 data-i18n="inv_title">Gəmi Sistemlərinin Siyahısı və Vəziyyəti</h3>
+                        <span class="badge-ref" data-i18n="badge_8_systems">8 KRİTİK SİSTEM</span>
+                    </div>
+                    <div class="equipment-grid" id="equipment-grid"></div>
+                </div>
+            </section>
+
+            <!-- ==================== 6. MISSION ENVIRONMENT ==================== -->
+            <section class="view-section" id="sec-environment">
+                <div class="mission-layout">
+                    <div class="panel">
+                        <div class="panel-head wrap-head">
+                            <div>
+                                <h3 data-i18n="mc_orbit_title">Orbital Telemetriya və Kosmik Gəmi Mühiti</h3>
+                                <span class="muted" data-i18n="mc_orbit_sub">Dəqiq orbital mövqe və kabin atmosfer vəziyyəti (Simulyasiya)</span>
+                            </div>
+                            <button id="spe-storm-btn" class="btn btn-sm btn-warn" data-i18n="btn_spe_start">☢ SPE Hadisəsini Simulyasiya Et</button>
+                        </div>
+
+                        <div class="orbit-3d-stage" id="orbit-3d-stage">
+                            <div id="orbit-3d-mount" class="orbit-3d-mount"></div>
+                            <canvas id="orbit-3d-canvas" height="260" class="hidden"></canvas>
+                            <div class="orbit-hud-overlay mono">
+                                <span id="orbit-mode-badge" class="badge-ref">3D WEBGL • LEO 418.4 km</span>
+                                <div class="orbit-hud-right">
+                                    <div class="orbit-zoom-controls" aria-label="3D Zoom">
+                                        <button type="button" class="orbit-zoom-btn" id="orbit-zoom-out" title="Zoom Out (−)">−</button>
+                                        <button type="button" class="orbit-zoom-btn" id="orbit-zoom-reset" title="Reset LEO View">LEO</button>
+                                        <button type="button" class="orbit-zoom-btn" id="orbit-zoom-in" title="Zoom In (+)">+</button>
+                                    </div>
+                                    <span class="muted orbit-drag-hint" data-i18n="orbit_drag_hint">🖱️ Sürükləyərək 3D planeti fırladın • Təkərciklə yaxınlaşdırın</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="spe-shield-hud hidden" id="spe-shield-hud" role="alert">
+                            <div class="spe-hud-top">
+                                <strong data-i18n="spe_hud_title">GÜNƏŞ HİSSƏCİK HADİSƏSİ (SPE) — QALXAN VƏ SIĞINACAQ PROTOKOLU</strong>
+                                <span class="badge-state crit mono" id="spe-hud-timer-pill">03:00</span>
+                            </div>
+                            <div class="spe-hud-row">
+                                <span data-i18n="spe_shield_lbl">Qalxan Gücü:</span>
+                                <strong class="mono" id="spe-shield-val">100%</strong>
+                            </div>
+                            <div class="eq-bar-track spe-shield-track">
+                                <div class="eq-bar-fill" id="spe-shield-bar" style="width:100%;background:#38bdf8;"></div>
+                            </div>
+                            <div class="spe-hud-row" style="margin-top:8px;">
+                                <span data-i18n="spe_shelter_timer_lbl">Sığınacaq Xəbərdarlığı (Geri Sayım):</span>
+                                <strong class="mono warn-text" id="spe-shelter-countdown">03:00</strong>
+                            </div>
+                            <p class="spe-hud-note" id="spe-hud-note" data-i18n="spe_shelter_active_note">Geri sayım bitmədən bütün ekipajı Komanda Modulunun radiasiya sığınacağına keçirin.</p>
+                        </div>
+
+                        <div class="mission-stats-grid">
+                            <div class="inset-tile">
+                                <span data-i18n="lbl_mc_dur">MİSSİYA MÜDDƏTİ</span>
+                                <strong class="mono" id="mc-duration">FD 42 / 180 (23.3%)</strong>
+                            </div>
+                            <div class="inset-tile">
+                                <span data-i18n="lbl_mc_crew">EKİPAJ VƏZİYYƏTİ</span>
+                                <strong id="mc-crew-status" class="ok-text">4/4</strong>
+                            </div>
+                            <div class="inset-tile">
+                                <span data-i18n="lbl_mc_craft">ORBİTAL HÜNDÜRLÜK</span>
+                                <strong class="mono" id="mc-craft-status">LEO 418.4 km</strong>
+                            </div>
+                            <div class="inset-tile">
+                                <span data-i18n="lbl_mc_comm">RABİTƏ ƏLAQƏSİ</span>
+                                <strong id="mc-comm-status" class="ok-text">DSN Ku-Band • 1.28 s</strong>
+                            </div>
+                            <div class="inset-tile" style="grid-column: 1 / -1;">
+                                <span data-i18n="lbl_mc_env">KABİN ATMOSFERİ (ECLSS)</span>
+                                <strong class="mono" id="mc-env-status">21.8 °C • 44% RH • 101.2 kPa</strong>
+                            </div>
+                        </div>
+
+                        <div class="progress-wrap">
+                            <div class="progress-head">
+                                <span data-i18n="lbl_mc_prog">Missiya Zamanı İrəliləyişi</span>
+                                <span class="mono" id="mc-latlon">51.6° N, 49.8° E</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill" style="width: 23.3%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-head">
+                            <h3 data-i18n="mc_hist_title">Missiya Fəaliyyət Tarixçəsi</h3>
+                            <input type="search" id="mc-activity-search" class="ctrl-input ctrl-sm" data-i18n-placeholder="ph_mc_search" placeholder="Hadisələri süzgəcdən keçir...">
+                        </div>
+                        <div class="activity-list tall" id="mc-activity-feed"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== 7. MEDICAL REPORTS ==================== -->
+            <section class="view-section" id="sec-reports">
+                <div class="panel">
+                    <div class="panel-head wrap-head">
+                        <div>
+                            <h3 data-i18n="rep_title">Aerokosmik Tibbi və Yoxlama Hesabatları</h3>
+                            <span class="muted" data-i18n="rep_sub">Hesabat kateqoriyasını seçin və PDF, CSV və ya JSON formatında ixrac edin</span>
+                        </div>
+                        <div class="btn-row">
+                            <button class="btn btn-cyan" id="rep-pdf-btn" data-i18n="btn_export_pdf">🖨️ PDF Hesabatını İxrac Et</button>
+                            <button class="btn" id="rep-csv-btn" data-i18n="btn_export_csv">⬇ CSV İxrac Et</button>
+                            <button class="btn" id="rep-json-btn" data-i18n="btn_export_json">⬇ JSON İxrac Et</button>
+                        </div>
+                    </div>
+
+                    <div class="report-tabs" id="report-tabs">
+                        <button class="tab-btn active" data-report="health" data-i18n="tab_health">Astronavt Sağlamlığı Telemetriyası</button>
+                        <button class="tab-btn" data-report="inspections" data-i18n="tab_insp">Gəmi Sistemləri Yoxlaması</button>
+                        <button class="tab-btn" data-report="maintenance" data-i18n="tab_maint">Texniki Xidmət Tarixçəsi</button>
+                        <button class="tab-btn" data-report="alerts" data-i18n="tab_alerts">Sistem Xəbərdarlıqları</button>
+                    </div>
+
+                    <div class="table-wrap" id="report-content-area"></div>
+
+                    <div class="report-disclaimer">
+                        <span class="badge-sim" data-i18n="badge_demo_data">SİMULYASİYA</span>
+                        <span data-i18n="rep_disclaimer">Rəsmi NASA OSD-575 tədqiqat məlumatları və simulyasiya edilmiş əməliyyat telemetriyası əsasında yaradılmışdır. İstinadlar: NASA HRP və CSA.</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== 8. SETTINGS ==================== -->
+            <section class="view-section" id="sec-settings">
+                <div class="settings-grid">
+                    <div class="panel">
+                        <div class="panel-head">
+                            <h3 data-i18n="set_ui_title">Dil və İnterfeys Seçimləri</h3>
+                            <span class="badge-ref" data-i18n="badge_saved_local">YERLİ SAXLANILIR</span>
+                        </div>
+                        <div class="settings-stack">
+                            <div class="setting-row">
+                                <div>
+                                    <strong data-i18n="set_lang_title">İnterfeys Dili</strong>
+                                    <p class="muted" data-i18n="set_lang_sub">Bütün naviqasiya, başlıqlar və etiketləri real vaxtda dəyişdirin</p>
+                                </div>
+                                <select id="set-lang" class="ctrl-select">
+                                    <option value="az">Azərbaycan (AZ)</option>
+                                    <option value="en">English (EN)</option>
+                                    <option value="ru">Русский (RU)</option>
+                                </select>
+                            </div>
+                            <div class="setting-row">
+                                <div>
+                                    <strong data-i18n="set_theme_title">İnterfeys Teması (Qara / Ağ)</strong>
+                                    <p class="muted" data-i18n="set_theme_sub">Tünd kosmik rejim və ya parlaq ağ rejim arasında keçid edin</p>
+                                </div>
+                                <select id="set-theme" class="ctrl-select">
+                                    <option value="dark" data-i18n="opt_theme_dark">🌙 Qara Tema (Dark)</option>
+                                    <option value="light" data-i18n="opt_theme_light">☀️ Ağ Tema (Light)</option>
+                                </select>
+                            </div>
+                            <div class="setting-row">
+                                <div>
+                                    <strong data-i18n="set_rate_title">Telemetriya Yenilənmə Tezliyi</strong>
+                                    <p class="muted" data-i18n="set_rate_sub">Biometrik göstəricilər və qrafiklər üçün yenilənmə intervalı</p>
+                                </div>
+                                <select id="set-rate" class="ctrl-select">
+                                    <option value="1000" data-i18n="opt_rate_1s">1.0 s (1 Hz Standart)</option>
+                                    <option value="500" data-i18n="opt_rate_05s">0.5 s (2 Hz Yüksək Tezlik)</option>
+                                    <option value="2000" data-i18n="opt_rate_2s">2.0 s (Aşağı Ötürmə)</option>
+                                </select>
+                            </div>
+                            <div class="setting-row">
+                                <div>
+                                    <strong data-i18n="set_temp_title">Temperatur Vahidi</strong>
+                                    <p class="muted" data-i18n="set_temp_sub">Bədən temperaturunu Selsi və ya Farenheyt ilə göstər</p>
+                                </div>
+                                <select id="set-temp-unit" class="ctrl-select">
+                                    <option value="C">Celsius (°C)</option>
+                                    <option value="F">Fahrenheit (°F)</option>
+                                </select>
+                            </div>
+                            <div class="setting-row">
+                                <div>
+                                    <strong data-i18n="set_motion_title">Azaldılmış Hərəkət Rejimi</strong>
+                                    <p class="muted" data-i18n="set_motion_sub">Panellər arası keçid animasiyalarını minimuma endir</p>
+                                </div>
+                                <input type="checkbox" id="set-reduced-motion">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-head">
+                            <h3 data-i18n="set_notif_title">Xəbərdarlıqlar, Səs və Təqdimat Rejimi</h3>
+                            <span class="badge-sim">OMNI</span>
+                        </div>
+                        <div class="settings-stack">
+                            <div class="setting-row">
+                                <div>
+                                    <strong data-i18n="set_toasts_title">Ağıllı Bildirişlər (Toast)</strong>
+                                    <p class="muted" data-i18n="set_toasts_sub">Telemetriya və avadanlıq xəbərdarlıqları üçün ani bildirişlər göstər</p>
+                                </div>
+                                <input type="checkbox" id="set-toasts" checked>
+                            </div>
+                            <div class="setting-row">
+                                <div>
+                                    <strong data-i18n="set_audio_title">Səsli Xəbərdarlıq Siqnalı</strong>
+                                    <p class="muted" data-i18n="set_audio_sub">YÜKSƏK risk xəbərdarlıqları zamanı tibbi siqnal səsləndir</p>
+                                </div>
+                                <div class="btn-row">
+                                    <input type="checkbox" id="set-audio">
+                                    <button type="button" id="settings-mute-btn" class="btn btn-sm btn-mute-alarm" data-i18n="btn_mute_alarm_full">Kritik Siqnalları 5 Dəqiqəliyə Susdur</button>
+                                    <button type="button" id="test-sound-btn" class="btn btn-sm" data-i18n="btn_test_audio">Səsi Yoxla</button>
+                                </div>
+                            </div>
+                            <div class="setting-row">
+                                <div>
+                                    <strong data-i18n="set_volume_title">Fövqəladə Vəziyyət Sireni Səs Səviyyəsi</strong>
+                                    <p class="muted" data-i18n="set_volume_sub">Tibbi xəbərdarlıq və fövqəladə siren səs çıxışını tənzimləyin (0% – 100%)</p>
+                                </div>
+                                <div class="volume-control-wrap">
+                                    <input type="range" id="set-volume" class="volume-slider" min="0" max="100" step="5" value="60" aria-label="Emergency Siren Volume">
+                                    <span class="mono ctrl-val-badge" id="lbl-volume">60%</span>
+                                </div>
+                            </div>
+                            <div class="setting-row">
+                                <div>
+                                    <strong data-i18n="set_demo_title">Münsiflər üçün Təqdimat Rejimi</strong>
+                                    <p class="muted" data-i18n="set_demo_sub">Bütün NASA Space Apps tələblərini nümayiş etdirən 6 mərhələli təqdimat</p>
+                                </div>
+                                <button id="set-start-demo-btn" class="btn btn-sm btn-cyan" data-i18n="btn_start_demo">★ Təqdimat Rejimini Başlat</button>
+                            </div>
+                            <div class="setting-row">
+                                <div>
+                                    <strong data-i18n="set_reset_title">Tətbiq Məlumatlarını Sıfırla</strong>
+                                    <p class="muted" data-i18n="set_reset_sub">Bütün ekipaj profillərini, avadanlıq qeydlərini və siyahıları ilkin hala qaytar</p>
+                                </div>
+                                <button id="reset-all-btn" class="btn btn-sm btn-danger" data-i18n="btn_reset_all">Bütün Məlumatları Sıfırla</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL DIALOG ==================== -->
+    <div class="modal-backdrop hidden" id="app-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-card">
+            <div class="modal-head">
+                <h3 id="modal-title">Details</h3>
+                <button id="modal-close-btn" class="btn btn-sm" data-i18n="btn_close">✕ Bağla</button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-foot" id="modal-foot"></div>
+        </div>
+    </div>
+
+    <!-- ==================== 6-SCREEN JUDGE PRESENTATION MODAL ==================== -->
+    <div class="presentation-modal hidden" id="presentation-modal" role="dialog" aria-modal="true">
+        <div class="pres-shell">
+            <div class="pres-header">
+                <div class="pres-brand">
+                    <span class="pres-dot"></span>
+                    <span>AERO-MED OMNI</span>
+                    <span class="badge-ref" id="pres-slide-badge">MISSION CONTROL</span>
+                </div>
+                <div class="pres-progress-lbl mono" id="pres-counter">Ekran 1 / 6</div>
+                <button class="btn btn-sm btn-danger" id="pres-exit-btn" data-i18n="pres_exit">✕ Çıxış (Esc)</button>
+            </div>
+
+            <div class="pres-body">
+                <h1 class="pres-title" id="pres-title"></h1>
+                <p class="pres-sub" id="pres-sub"></p>
+                <div class="pres-kpi-grid" id="pres-kpi-grid"></div>
+                <div class="pres-points-card">
+                    <ul class="pres-points" id="pres-points-list"></ul>
+                </div>
+            </div>
+
+            <div class="pres-footer">
+                <button class="btn" id="pres-prev-btn" data-i18n="pres_prev">◀ Əvvəlki</button>
+                <div class="pres-dots" id="pres-dots"></div>
+                <button class="btn btn-cyan" id="pres-next-btn" data-i18n="pres_next">Növbəti ▶</button>
+            </div>
+            <div class="pres-hint muted" data-i18n="pres_hint">Naviqasiya üçün Sol/Sağ ox düymələrindən istifadə edin • Çıxış üçün Esc</div>
+        </div>
+    </div>
+
+    <!-- ==================== TOAST STACK ==================== -->
+    <div class="toast-stack" id="toast-stack"></div>
+
+    <script src="data.js"></script>
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
